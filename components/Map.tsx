@@ -21,10 +21,14 @@ async function fetchParcelAtPoint(lng: number, lat: number): Promise<ParcelFeatu
     if (!data.features?.length) return null;
     const f = data.features[0];
     const props = f.properties;
-    const communeCode = props.code_insee ?? props.commune ?? '';
+    // API Carto returns code_dep + code_com, or code_insee directly depending on version
+    const communeCode =
+      props.code_insee ??
+      `${props.code_dep ?? ''}${String(props.code_com ?? '').padStart(3, '0')}`;
     const section = (props.section ?? '').trim();
     const numero = (props.numero ?? '').trim();
     const id = `${communeCode}${section}${numero}`;
+    console.log('Parcel found:', { id, communeCode, section, numero, props });
     return { id, commune_code: communeCode, section, numero, geometry: f.geometry };
   } catch {
     return null;

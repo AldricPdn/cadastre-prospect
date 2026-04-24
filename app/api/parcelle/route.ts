@@ -14,8 +14,12 @@ export async function GET(req: NextRequest) {
     { headers: { Accept: 'application/json' } }
   );
 
-  if (!res.ok) return NextResponse.json({ features: [] });
+  if (!res.ok) {
+    console.error('API Carto error:', res.status, await res.text());
+    return NextResponse.json({ features: [] });
+  }
 
   const data = await res.json();
+  console.log('API Carto response:', JSON.stringify(data).slice(0, 500));
   return NextResponse.json(data);
 }
