@@ -6,17 +6,13 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { GeoJSON } from 'geojson';
 import { Annotation, ParcelFeature } from '@/types';
 
-const WMS_BASE = 'https://data.geopf.fr/wms-v/ows';
 const APICARTO_URL = 'https://apicarto.ign.fr/api/cadastre/parcelle';
 
-function buildWmsTileUrl(): string {
-  return (
-    `${WMS_BASE}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap` +
-    `&LAYERS=CADASTRALPARCELS.PARCELLAIRE_EXPRESS` +
-    `&FORMAT=image/png&TRANSPARENT=true` +
-    `&CRS=EPSG:3857&BBOX={bbox-epsg-3857}&WIDTH=256&HEIGHT=256`
-  );
-}
+// WMTS is far more reliable than WMS with MapLibre (standard xyz tiles, no bbox trick)
+const WMTS_CADASTRE =
+  'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0' +
+  '&LAYER=CADASTRALPARCELS.PARCELLAIRE_EXPRESS&STYLE=normal&FORMAT=image/png' +
+  '&TILEMATRIXSET=PM&TILEMATRIX={z}&TILEROW={y}&TILECOL={x}';
 
 async function fetchParcelAtPoint(lng: number, lat: number): Promise<ParcelFeature | null> {
   try {
@@ -79,12 +75,14 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     map.on('load', () => {
-      map.addSource('wms-cadastre', {
+      map.addSource('wmts-cadastre', {
         type: 'raster',
-        tiles: [buildWmsTileUrl()],
+        tiles: [WMTS_CADASTRE],
         tileSize: 256,
+        minzoom: 12,
+        maxzoom: 20,
       });
-      map.addLayer({ id: 'wms-cadastre', type: 'raster', source: 'wms-cadastre', minzoom: 13 });
+      map.addLayer({ id: 'wmts-cadastre', type: 'raster', source: 'wmts-cadastre', minzoom: 12 });
 
       map.addSource('annotations', {
         type: 'geojson',
@@ -139,7 +137,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
     onFlyToDoneRef.current();
   }, [flyTo]);
 
-  return <div ref={containerRef} className="flex-1 h-full" />;
+  return <div ref={containerRef} className="absolute inset-0" />;
 }
 
 function buildAnnotationsGeoJSON(annotations: Annotation[]): GeoJSON {
