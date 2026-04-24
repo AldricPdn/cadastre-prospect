@@ -128,7 +128,7 @@ export default function Home() {
     <div className="flex h-full">
       <Sidebar annotations={annotations} onSelect={handleSidebarSelect} />
 
-      <div className="flex-1 relative">
+      <div className="flex-1 relative h-full">
         <Map
           annotations={annotations}
           onParcelClick={handleParcelClick}

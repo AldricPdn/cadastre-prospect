@@ -137,7 +137,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
     onFlyToDoneRef.current();
   }, [flyTo]);
 
-  return <div ref={containerRef} className="absolute inset-0" />;
+  return <div ref={containerRef} className="w-full h-full" />;
 }
 
 function buildAnnotationsGeoJSON(annotations: Annotation[]): GeoJSON {
