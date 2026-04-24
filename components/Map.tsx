@@ -6,8 +6,6 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import type { GeoJSON } from 'geojson';
 import { Annotation, ParcelFeature } from '@/types';
 
-const APICARTO_URL = 'https://apicarto.ign.fr/api/cadastre/parcelle';
-
 // WMTS is far more reliable than WMS with MapLibre (standard xyz tiles, no bbox trick)
 const WMTS_CADASTRE =
   'https://data.geopf.fr/wmts?SERVICE=WMTS&REQUEST=GetTile&VERSION=1.0.0' +
@@ -16,15 +14,16 @@ const WMTS_CADASTRE =
 
 async function fetchParcelAtPoint(lng: number, lat: number): Promise<ParcelFeature | null> {
   try {
-    const res = await fetch(`${APICARTO_URL}?lon=${lng}&lat=${lat}`);
+    // Proxied through our API route to avoid CORS issues
+    const res = await fetch(`/api/parcelle?lon=${lng}&lat=${lat}`);
     if (!res.ok) return null;
     const data = await res.json();
     if (!data.features?.length) return null;
     const f = data.features[0];
     const props = f.properties;
     const communeCode = props.code_insee ?? props.commune ?? '';
-    const section = props.section ?? '';
-    const numero = props.numero ?? '';
+    const section = (props.section ?? '').trim();
+    const numero = (props.numero ?? '').trim();
     const id = `${communeCode}${section}${numero}`;
     return { id, commune_code: communeCode, section, numero, geometry: f.geometry };
   } catch {
@@ -112,7 +111,9 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
 
     map.on('click', async (e) => {
       const { lng, lat } = e.lngLat;
+      map.getCanvas().style.cursor = 'wait';
       const parcel = await fetchParcelAtPoint(lng, lat);
+      map.getCanvas().style.cursor = 'crosshair';
       if (!parcel) return;
       const existing = annotationsRef.current.find((a) => a.id === parcel.id) ?? null;
       onParcelClickRef.current(parcel, existing);
