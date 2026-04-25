@@ -53,12 +53,31 @@ interface Props {
   onFlyToDone: () => void;
 }
 
+function updateScaleBar(
+  map: maplibregl.Map,
+  barEl: HTMLDivElement | null,
+  labelEl: HTMLSpanElement | null,
+) {
+  if (!barEl || !labelEl) return;
+  const zoom = map.getZoom();
+  const lat = map.getCenter().lat;
+  const metersPerPx =
+    (2 * Math.PI * 6371008 * Math.cos((lat * Math.PI) / 180)) /
+    (256 * Math.pow(2, zoom));
+  const targets = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
+  const nice = targets.find((t) => t >= metersPerPx * 120) ?? 50000;
+  barEl.style.width = `${Math.round(nice / metersPerPx)}px`;
+  labelEl.textContent = nice >= 1000 ? `${nice / 1000} km` : `${nice} m`;
+}
+
 export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const annotationsRef = useRef<Annotation[]>(annotations);
   const onParcelClickRef = useRef(onParcelClick);
   const onFlyToDoneRef = useRef(onFlyToDone);
+  const scaleBarRef = useRef<HTMLDivElement>(null);
+  const scaleLabelRef = useRef<HTMLSpanElement>(null);
 
   annotationsRef.current = annotations;
   onParcelClickRef.current = onParcelClick;
@@ -81,6 +100,18 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
       if (map.getLayer('boundary_county')) {
         map.setLayerZoomRange('boundary_county', 9, 14);
       }
+
+      if (map.getLayer('building-top')) {
+        map.setPaintProperty('building-top', 'fill-color', '#ef4444');
+        map.setPaintProperty('building-top', 'fill-opacity', [
+          'interpolate', ['linear'], ['zoom'],
+          13, 0,
+          14, 0.45,
+          16, 0.65,
+        ]);
+      }
+
+      updateScaleBar(map, scaleBarRef.current, scaleLabelRef.current);
 
       map.addSource('wmts-cadastre', {
         type: 'raster',
@@ -126,6 +157,8 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
       });
     });
 
+    map.on('move', () => updateScaleBar(map, scaleBarRef.current, scaleLabelRef.current));
+
     map.on('click', async (e) => {
       const { lng, lat } = e.lngLat;
       map.getCanvas().style.cursor = 'wait';
@@ -155,7 +188,19 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
     onFlyToDoneRef.current();
   }, [flyTo]);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return (
+    <div className="relative w-full h-full">
+      <div ref={containerRef} className="w-full h-full" />
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none z-10">
+        <div
+          ref={scaleBarRef}
+          className="border-b-2 border-l-2 border-r-2 border-white/50 h-2"
+          style={{ width: 120 }}
+        />
+        <span ref={scaleLabelRef} className="text-[11px] text-white/50 font-mono mt-0.5" />
+      </div>
+    </div>
+  );
 }
 
 function buildAnnotationsGeoJSON(annotations: Annotation[]): GeoJSON {
