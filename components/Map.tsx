@@ -60,27 +60,16 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
   const onParcelClickRef = useRef(onParcelClick);
   const onFlyToDoneRef = useRef(onFlyToDone);
 
-  useEffect(() => { annotationsRef.current = annotations; }, [annotations]);
-  useEffect(() => { onParcelClickRef.current = onParcelClick; }, [onParcelClick]);
-  useEffect(() => { onFlyToDoneRef.current = onFlyToDone; }, [onFlyToDone]);
+  annotationsRef.current = annotations;
+  onParcelClickRef.current = onParcelClick;
+  onFlyToDoneRef.current = onFlyToDone;
 
   useEffect(() => {
     if (!containerRef.current) return;
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: {
-        version: 8,
-        sources: {
-          'carto-dark': {
-            type: 'raster',
-            tiles: ['https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '© CartoDB © OpenStreetMap contributors',
-          },
-        },
-        layers: [{ id: 'carto-dark', type: 'raster', source: 'carto-dark' }],
-      },
+      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       center: [-1.6, 48.5],
       zoom: 9,
     });
@@ -89,19 +78,26 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
     map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
     map.on('load', () => {
+      if (map.getLayer('boundary_county')) {
+        map.setLayerZoomRange('boundary_county', 9, 14);
+      }
+
       map.addSource('wmts-cadastre', {
         type: 'raster',
         tiles: [WMTS_CADASTRE],
         tileSize: 256,
-        minzoom: 10,
+        minzoom: 8,
         maxzoom: 19,
       });
       map.addLayer({
         id: 'wmts-cadastre',
         type: 'raster',
         source: 'wmts-cadastre',
-        minzoom: 10,
-        paint: { 'raster-opacity': 0.45 },
+        minzoom: 8,
+        paint: {
+          'raster-opacity': 0.45,
+          'raster-saturation': -0.85,
+        },
       });
 
       map.addSource('annotations', {
@@ -147,7 +143,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || !map.isStyleLoaded()) return;
+    if (!map) return;
     const src = map.getSource('annotations') as maplibregl.GeoJSONSource | undefined;
     if (!src) return;
     src.setData(buildAnnotationsGeoJSON(annotations));
