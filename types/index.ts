@@ -24,6 +24,8 @@ export interface ParcelFeature {
   commune_code: string;
   section: string;
   numero: string;
+  nom_com: string;
+  superficie: number | null;
   geometry: GeoJSONPolygon;
 }
 

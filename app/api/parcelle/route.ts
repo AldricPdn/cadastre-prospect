@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import turfArea from '@turf/area';
 
 const WFS_URL = 'https://data.geopf.fr/wfs/ows';
 const LAYER = 'BDPARCELLAIRE-VECTEUR_WLD_BDD_WGS84G:parcelle';
@@ -38,6 +39,9 @@ export async function GET(req: NextRequest) {
 
   if (!containing) return NextResponse.json({ features: [] });
 
+  // Calculate area in m² from geometry
+  const superficie = Math.round(turfArea(containing));
+
   // Normalise to the shape fetchParcelAtPoint expects
   const p = containing.properties;
   const normalised = {
@@ -52,6 +56,7 @@ export async function GET(req: NextRequest) {
           section: p.section,
           numero: p.numero,
           nom_com: p.nom_com,
+          superficie,
         },
       },
     ],

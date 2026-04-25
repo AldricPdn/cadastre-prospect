@@ -88,6 +88,8 @@ export default function Home() {
       commune_code: a.commune_code ?? '',
       section: a.section ?? '',
       numero: a.numero ?? '',
+      nom_com: '',
+      superficie: null,
       geometry: a.geometry ?? { type: 'Polygon', coordinates: [] },
     });
     setSelectedExisting(a);

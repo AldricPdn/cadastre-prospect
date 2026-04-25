@@ -31,7 +31,15 @@ async function fetchParcelAtPoint(lng: number, lat: number): Promise<ParcelFeatu
     const numero = (props.numero ?? '').trim();
     const id = `${communeCode}${section}${numero}`;
     console.log('[cadastre] parcel id', id, props);
-    return { id, commune_code: communeCode, section, numero, geometry: f.geometry };
+    return {
+      id,
+      commune_code: communeCode,
+      section,
+      numero,
+      nom_com: props.nom_com ?? '',
+      superficie: props.superficie ? Number(props.superficie) : null,
+      geometry: f.geometry,
+    };
   } catch (err) {
     console.error('[cadastre] fetch error', err);
     return null;

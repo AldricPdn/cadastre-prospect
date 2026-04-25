@@ -62,8 +62,15 @@ export default function DetailPanel({ parcel, existing, onSave, onDelete, onClos
           <div className="text-xs text-text-dim uppercase tracking-wider mb-0.5">Parcelle</div>
           <div className="font-mono font-semibold text-sm">{parcel.id}</div>
           <div className="text-xs text-text-dim mt-0.5">
-            {parcel.commune_code} · Section {parcel.section} · N° {parcel.numero}
+            {parcel.nom_com || parcel.commune_code} · Section {parcel.section} · N° {parcel.numero}
           </div>
+          {parcel.superficie != null && (
+            <div className="text-xs text-text-dim mt-0.5">
+              {parcel.superficie >= 10000
+                ? `${(parcel.superficie / 10000).toFixed(2)} ha`
+                : `${parcel.superficie} m²`}
+            </div>
+          )}
         </div>
         <button onClick={onClose} className="text-text-dim hover:text-text p-1 -mt-1 -mr-1">
           ✕
