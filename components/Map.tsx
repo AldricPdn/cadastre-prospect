@@ -59,11 +59,17 @@ function updateScaleBar(
   labelEl: HTMLSpanElement | null,
 ) {
   if (!barEl || !labelEl) return;
-  const zoom = map.getZoom();
-  const lat = map.getCenter().lat;
-  const metersPerPx =
-    (2 * Math.PI * 6371008 * Math.cos((lat * Math.PI) / 180)) /
-    (256 * Math.pow(2, zoom));
+  const { height } = map.getContainer().getBoundingClientRect();
+  const cy = height / 2;
+  const p1 = map.unproject([0, cy]);
+  const p2 = map.unproject([100, cy]);
+  const R = 6371008;
+  const dLat = ((p2.lat - p1.lat) * Math.PI) / 180;
+  const dLng = ((p2.lng - p1.lng) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos((p1.lat * Math.PI) / 180) * Math.cos((p2.lat * Math.PI) / 180) * Math.sin(dLng / 2) ** 2;
+  const metersPerPx = (2 * R * Math.asin(Math.sqrt(a))) / 100;
   const targets = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, 2000, 5000, 10000, 20000, 50000];
   const nice = targets.find((t) => t >= metersPerPx * 120) ?? 50000;
   barEl.style.width = `${Math.round(nice / metersPerPx)}px`;
@@ -78,6 +84,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
   const onFlyToDoneRef = useRef(onFlyToDone);
   const scaleBarRef = useRef<HTMLDivElement>(null);
   const scaleLabelRef = useRef<HTMLSpanElement>(null);
+  const loadingRef = useRef<HTMLDivElement>(null);
 
   annotationsRef.current = annotations;
   onParcelClickRef.current = onParcelClick;
@@ -162,8 +169,10 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
     map.on('click', async (e) => {
       const { lng, lat } = e.lngLat;
       map.getCanvas().style.cursor = 'wait';
+      if (loadingRef.current) loadingRef.current.style.display = 'flex';
       const parcel = await fetchParcelAtPoint(lng, lat);
       map.getCanvas().style.cursor = 'crosshair';
+      if (loadingRef.current) loadingRef.current.style.display = 'none';
       if (!parcel) return;
       const existing = annotationsRef.current.find((a) => a.id === parcel.id) ?? null;
       onParcelClickRef.current(parcel, existing);
@@ -191,13 +200,27 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none z-10">
+
+      {/* Scale bar — slightly below vertical center */}
+      <div className="absolute top-1/2 mt-6 left-1/2 -translate-x-1/2 flex flex-col items-center pointer-events-none select-none z-10">
         <div
           ref={scaleBarRef}
           className="border-b-2 border-l-2 border-r-2 border-white/50 h-2"
           style={{ width: 120 }}
         />
         <span ref={scaleLabelRef} className="text-[11px] text-white/50 font-mono mt-0.5" />
+      </div>
+
+      {/* Loading indicator while WFS fetches */}
+      <div
+        ref={loadingRef}
+        style={{ display: 'none' }}
+        className="absolute inset-0 flex items-center justify-center pointer-events-none z-20"
+      >
+        <div className="bg-black/60 backdrop-blur rounded-lg px-4 py-2 text-sm text-white/80 flex items-center gap-2">
+          <div className="w-3 h-3 border-2 border-white/60 border-t-transparent rounded-full animate-spin" />
+          Identification…
+        </div>
       </div>
     </div>
   );

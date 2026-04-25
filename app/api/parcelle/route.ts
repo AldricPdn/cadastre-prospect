@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
     `${WFS_URL}?SERVICE=WFS&VERSION=2.0.0&REQUEST=GetFeature` +
     `&TYPENAMES=${encodeURIComponent(LAYER)}` +
     `&outputFormat=application/json` +
-    `&COUNT=10` +
+    `&COUNT=3` +
     `&BBOX=${bbox}`;
 
   const res = await fetch(url, { headers: { Accept: 'application/json' } });
