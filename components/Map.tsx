@@ -85,10 +85,16 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
         type: 'raster',
         tiles: [WMTS_CADASTRE],
         tileSize: 256,
-        minzoom: 12,
+        minzoom: 10,
         maxzoom: 19,
       });
-      map.addLayer({ id: 'wmts-cadastre', type: 'raster', source: 'wmts-cadastre', minzoom: 12 });
+      map.addLayer({
+        id: 'wmts-cadastre',
+        type: 'raster',
+        source: 'wmts-cadastre',
+        minzoom: 10,
+        paint: { 'raster-opacity': 0.45 },
+      });
 
       map.addSource('annotations', {
         type: 'geojson',
