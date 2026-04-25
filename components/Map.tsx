@@ -14,23 +14,26 @@ const WMTS_CADASTRE =
 
 async function fetchParcelAtPoint(lng: number, lat: number): Promise<ParcelFeature | null> {
   try {
-    // Proxied through our API route to avoid CORS issues
-    const res = await fetch(`/api/parcelle?lon=${lng}&lat=${lat}`);
+    const url = `/api/parcelle?lon=${lng}&lat=${lat}`;
+    console.log('[cadastre] fetching', url);
+    const res = await fetch(url);
+    console.log('[cadastre] proxy status', res.status);
     if (!res.ok) return null;
     const data = await res.json();
+    console.log('[cadastre] proxy data', JSON.stringify(data).slice(0, 300));
     if (!data.features?.length) return null;
     const f = data.features[0];
     const props = f.properties;
-    // API Carto returns code_dep + code_com, or code_insee directly depending on version
     const communeCode =
       props.code_insee ??
       `${props.code_dep ?? ''}${String(props.code_com ?? '').padStart(3, '0')}`;
     const section = (props.section ?? '').trim();
     const numero = (props.numero ?? '').trim();
     const id = `${communeCode}${section}${numero}`;
-    console.log('Parcel found:', { id, communeCode, section, numero, props });
+    console.log('[cadastre] parcel id', id, props);
     return { id, commune_code: communeCode, section, numero, geometry: f.geometry };
-  } catch {
+  } catch (err) {
+    console.error('[cadastre] fetch error', err);
     return null;
   }
 }
@@ -83,7 +86,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
         tiles: [WMTS_CADASTRE],
         tileSize: 256,
         minzoom: 12,
-        maxzoom: 20,
+        maxzoom: 19,
       });
       map.addLayer({ id: 'wmts-cadastre', type: 'raster', source: 'wmts-cadastre', minzoom: 12 });
 
