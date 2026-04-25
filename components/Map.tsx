@@ -148,7 +148,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
         type: 'fill',
         source: 'annotations',
         paint: {
-          'fill-color': ['match', ['get', 'status'], 'ok', '#22c55e', 'nok', '#ef4444', '#6b7280'],
+          'fill-color': ['match', ['get', 'status'], 'ok', '#22c55e', 'nok', '#ef4444', 'maybe', '#f97316', '#6b7280'],
           'fill-opacity': 0.3,
         },
       });
@@ -158,7 +158,7 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
         type: 'line',
         source: 'annotations',
         paint: {
-          'line-color': ['match', ['get', 'status'], 'ok', '#22c55e', 'nok', '#ef4444', '#6b7280'],
+          'line-color': ['match', ['get', 'status'], 'ok', '#22c55e', 'nok', '#ef4444', 'maybe', '#f97316', '#6b7280'],
           'line-width': 2,
         },
       });

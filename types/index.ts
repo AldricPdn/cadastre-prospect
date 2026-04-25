@@ -1,4 +1,4 @@
-export type Status = 'ok' | 'nok' | 'neutral';
+export type Status = 'ok' | 'nok' | 'neutral' | 'maybe';
 
 export interface Annotation {
   id: string;

@@ -49,10 +49,11 @@ export default function DetailPanel({ parcel, existing, onSave, onDelete, onClos
     setDeleting(false);
   }
 
-  const statusButtons: { value: Status; label: string; cls: string }[] = [
-    { value: 'ok', label: 'Possible', cls: 'btn-ok' },
-    { value: 'nok', label: 'Refusé', cls: 'btn-nok' },
-    { value: 'neutral', label: 'Non visité', cls: 'btn-neutral' },
+  const statusButtons: { value: Status; label: string; active: string }[] = [
+    { value: 'ok',      label: 'Possible',    active: 'bg-green/20 border-green text-green' },
+    { value: 'maybe',   label: 'Peut-être ?', active: 'bg-orange/20 border-orange text-orange' },
+    { value: 'nok',     label: 'Refusé',      active: 'bg-red/20 border-red text-red' },
+    { value: 'neutral', label: 'Non visité',  active: 'bg-surface2 border-border text-text' },
   ];
 
   return (
@@ -77,19 +78,13 @@ export default function DetailPanel({ parcel, existing, onSave, onDelete, onClos
         </button>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         {statusButtons.map((b) => (
           <button
             key={b.value}
             onClick={() => setStatus(b.value)}
             className={`flex-1 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-              status === b.value
-                ? b.value === 'ok'
-                  ? 'bg-green/20 border-green text-green'
-                  : b.value === 'nok'
-                  ? 'bg-red/20 border-red text-red'
-                  : 'bg-surface2 border-border text-text'
-                : 'border-border text-text-dim hover:border-text-dim'
+              status === b.value ? b.active : 'border-border text-text-dim hover:border-text-dim'
             }`}
           >
             {b.label}
