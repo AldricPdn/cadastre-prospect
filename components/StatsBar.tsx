@@ -8,12 +8,14 @@ interface Props {
 
 export default function StatsBar({ annotations }: Props) {
   const ok = annotations.filter((a) => a.status === 'ok').length;
+  const maybe = annotations.filter((a) => a.status === 'maybe').length;
   const nok = annotations.filter((a) => a.status === 'nok').length;
   const total = annotations.length;
 
   return (
     <div className="flex gap-3 p-3 border-b border-border">
       <Stat label="Possible" value={ok} color="text-green" />
+      <Stat label="Peut-être" value={maybe} color="text-orange" />
       <Stat label="Refusé" value={nok} color="text-red" />
       <Stat label="Total" value={total} color="text-text-dim" />
     </div>

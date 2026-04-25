@@ -9,10 +9,11 @@ interface Props {
   onSelect: (a: Annotation) => void;
 }
 
-const STATUS_ORDER: Record<Status, number> = { ok: 0, nok: 1, neutral: 2 };
-const STATUS_LABEL: Record<Status, string> = { ok: 'Possible', nok: 'Refusé', neutral: 'Non visité' };
+const STATUS_ORDER: Record<Status, number> = { ok: 0, maybe: 1, nok: 2, neutral: 3 };
+const STATUS_LABEL: Record<Status, string> = { ok: 'Possible', maybe: 'Peut-être ?', nok: 'Refusé', neutral: 'Non visité' };
 const STATUS_COLOR: Record<Status, string> = {
   ok: 'text-green bg-green/10 border-green/30',
+  maybe: 'text-orange bg-orange/10 border-orange/30',
   nok: 'text-red bg-red/10 border-red/30',
   neutral: 'text-text-dim bg-surface2 border-border',
 };
