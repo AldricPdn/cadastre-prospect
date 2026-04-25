@@ -108,6 +108,27 @@ export default function Map({ annotations, onParcelClick, flyTo, onFlyToDone }: 
         map.setLayerZoomRange('boundary_county', 9, 14);
       }
 
+      fetch('https://geo.api.gouv.fr/departements?fields=nom,code,contour&format=geojson')
+        .then((r) => r.json())
+        .then((data) => {
+          if (!map.isStyleLoaded()) return;
+          map.addSource('departements', { type: 'geojson', data });
+          map.addLayer({
+            id: 'departements-outline',
+            type: 'line',
+            source: 'departements',
+            minzoom: 4,
+            paint: {
+              'line-color': '#818cf8',
+              'line-width': ['interpolate', ['linear'], ['zoom'], 5, 1, 10, 2],
+              'line-opacity': 0.7,
+              'line-dasharray': [5, 3],
+            },
+          });
+        })
+        .catch(() => {});
+
+
       if (map.getLayer('building-top')) {
         map.setPaintProperty('building-top', 'fill-color', '#ef4444');
         map.setPaintProperty('building-top', 'fill-opacity', [
